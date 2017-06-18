@@ -6,5 +6,5 @@
 -------------
 * python版本3.5 ，依赖包 tinify
 * timo.bat 设置 timo.py 的目录 以及 Python35的位置,.bat 放在windows目录下
-* timo.py 设置tinypng 的 key
+* timo.py 设置tinypng 的 key,key可以为多个
 * timo.reg 修改相应批处理的名字,这里用的是timo.bat
