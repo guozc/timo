@@ -4,6 +4,8 @@ import tinify
 import threading
 import time
 import base64
+from PIL import Image
+
 
 keys = ["yourkey1","yourkey2","yourkey3"]
 suffix = ["png",'jpg']
@@ -53,10 +55,22 @@ def dirlist(path, allfile,now_dir_name,new_dir_name):
             allfile.append(filepath.replace(now_dir_name,new_dir_name,1))  
     return allfile
 
-def do_timo(filename,total,now_dir_name,new_dir_name,index):
+def do_timo(filename,total,now_dir_name,new_dir_name,index,scale_percentage):
     out_name = filename.replace(now_dir_name,new_dir_name,1)
-    source = tinify.from_file(filename)
-    source.to_file(out_name)
+
+    if scale_percentage < 1:
+        image_width = Image.open(filename).size[0]
+        image_height = Image.open(filename).size[1]
+        source = tinify.from_file(filename)
+        resized = source.resize(
+            method="fit",
+            width = image_width*scale_percentage,
+            height = image_height*scale_percentage
+        )
+        resized.to_file(out_name)
+    else:
+        source = tinify.from_file(filename)
+        source.to_file(out_name)
     global timo_has_done
     timo_has_done += 1
     print("{0} has done ,total {1},completed {2}".format(out_name,total,timo_has_done))
@@ -102,10 +116,21 @@ def do_tinify_list():
 
     if key_effective:
         print("now_key:"+tinify.key)
+        #get scale 
+        scale_percentage = input("enter scale_percentage,0<scale_percentage<=100,default = 100 :")
+        try:
+            scale_percentage = float(scale_percentage);
+            if scale_percentage>=100.0 or scale_percentage<0:
+                scale_percentage = 100.0
+        except:
+            scale_percentage = 100.0
+        print("convert scale_percentage is "+str(scale_percentage)+"%")
+        scale_percentage = scale_percentage/100
+
         print("convert start ...")
         threads = []
         for index,image_name in enumerate(image_names):
-           threads.append(threading.Thread(target=do_timo,args=(image_name,total,now_dir_name,new_dir_name,index)))
+           threads.append(threading.Thread(target=do_timo,args=(image_name,total,now_dir_name,new_dir_name,index,scale_percentage)))
         for t in threads:
             t.start()
     else:
