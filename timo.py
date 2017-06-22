@@ -5,17 +5,19 @@ import threading
 import time
 import base64
 from PIL import Image
+import shutil
 
 
 keys = ["yourkey1","yourkey2","yourkey3"]
-suffix = ["png",'jpg']
+suffix = ["png","jpg","JPG","JEPG","jepg","PNG"]
 
 global timo_has_done
 timo_has_done = 0
 global base64_has_done
 base64_has_done = 0
 
-def get_image_filenames(input_dir):    
+def get_image_filenames(input_dir):
+    image_name_list = []    
     for fn in os.listdir(input_dir):
         if len(fn.split("."))>1:
             if fn.split(".")[-1] in suffix:
@@ -160,16 +162,43 @@ def do_base64_list():
     for t in threads:
         t.start()
 
+def do_clip_rename(start_num):
+    input_dir = sys.argv[1]
+    temp_dir_name = "temp_{0}".format(int(time.time()))
+    os.mkdir(input_dir+"\\"+temp_dir_name)
+    image_names = get_image_filenames(input_dir)
+    try:
+        image_names.sort(key=lambda x:int(x.split(".")[-2]))
+    except:        
+        image_names = get_image_filenames(input_dir)
+    print(image_names)
+    for i in image_names:
+        shutil.move(input_dir+"\\"+i,input_dir+"\\"+temp_dir_name+"\\"+i)
+
+    for i in image_names:
+        print(i);
+        shutil.move(input_dir+"\\"+temp_dir_name+"\\"+i,input_dir+"\\"+str(start_num)+"."+i.split(".")[-1])
+        start_num = start_num+1
+    shutil.rmtree(input_dir+"\\"+temp_dir_name)
+
 def main():
     if(len(sys.argv)>1):
-        feature = input("choose function: [1]tinify; [2]toBase64 :")
+        feature = input("choose function: [1]tinify; [2]toBase64 ; [3]clip image rename :")
 
         #tinify
         if feature == "1":
             do_tinify_list()
         #base64
         elif feature == "2":
-           do_base64_list()
+            do_base64_list()
+        elif feature == "3":
+            start_num = input("enter start number(default=0): ")
+            try:
+                start_num = int(start_num)
+            except:
+                start_num = 0
+            print("start_num is {0}".format(start_num))
+            do_clip_rename(start_num)
 
 if __name__ == '__main__':
     main()
