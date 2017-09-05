@@ -6,7 +6,7 @@ import time
 import base64
 from PIL import Image
 import shutil
-
+import json
 
 keys = ["yourkey1","yourkey2","yourkey3"]
 suffix = ["png","jpg","JPG","JEPG","jepg","PNG"]
@@ -181,9 +181,16 @@ def do_clip_rename(start_num):
         start_num = start_num+1
     shutil.rmtree(input_dir+"\\"+temp_dir_name)
 
+def do_get_all_imagePath():
+    input_dir = sys.argv[1]
+    fo = open("foo.txt", "wb")
+    json_str = json.dumps(get_all_images(input_dir))
+    fo.write(str(json_str).replace("\\\\","\\").replace(input_dir,input_dir.split("\\")[-1]).replace("\\","/").encode(encoding="utf-8"));
+    fo.close()
+
 def main():
     if(len(sys.argv)>1):
-        feature = input("choose function: [1]tinify; [2]toBase64 ; [3]clip image rename :")
+        feature = input("choose function: [1]tinify; [2]toBase64 ; [3]clip image rename ;[4] get all imagePath:")
 
         #tinify
         if feature == "1":
@@ -199,6 +206,7 @@ def main():
                 start_num = 0
             print("start_num is {0}".format(start_num))
             do_clip_rename(start_num)
-
+        elif feature == "4":
+            do_get_all_imagePath()
 if __name__ == '__main__':
     main()
