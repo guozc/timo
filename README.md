@@ -7,6 +7,9 @@
 - [3]修改目标文件夹内图片序列帧的序号 
 - [4]生成foo.txt记录文件目录下的图片相对路径，服务于https://github.com/superMoDi/preload 
 - [5]audio(目前只支持mp3格式)转base64
+- [7]make Sprit Sheet 生产序列图 目标序列为 0.png ,1.png ... n.png 文件类型PNG ，生产sheet.png 的序列 及 sheetfoo.txt 的序列样式
+- [8]convertPng 批量 png 转 jpg
+- [9]sprit_base64 生成base64动画序列，文件类型jpg
 
 
 配置说明:

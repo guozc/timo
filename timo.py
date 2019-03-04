@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-  
 import os,sys
 from urllib.request import Request,urlopen
 import tinify
@@ -207,9 +208,6 @@ def do_tinify_list():
 
 
 
-
-
-
 def do_base64_list():
     input_dir = sys.argv[1]
     now_dir_name = input_dir.split("\\")[-1]
@@ -233,6 +231,8 @@ def do_base64_list():
        threads.append(threading.Thread(target=do_base64,args=(image_name,total,now_dir_name,new_dir_name,index)))
     for t in threads:
         t.start()
+
+
 
 def do_base64_list_audio():
     input_dir = sys.argv[1]
@@ -284,9 +284,131 @@ def do_get_all_imagePath():
     fo.write(str(json_str).replace("\\\\","\\").replace(input_dir,input_dir.split("\\")[-1]).replace("\\","/").encode(encoding="utf-8"));
     fo.close()
 
+
+def doOnceF():
+    filecount = 0
+    input_dir = sys.argv[1]
+    now_dir_name = input_dir.split("\\")[-1]
+    suffix64 = "png"
+    for root,dir,files in  os.walk(input_dir):
+        filecount+=len(files)
+    if(os.path.exists(input_dir+"/0.png")):
+        suffix64 = "png"
+    if(os.path.exists(input_dir+"/0.jpg")):
+        suffix64 = "jpg"
+    if(os.path.exists(input_dir+"/0.JPG")):
+        suffix64 = "jpg"
+    if(os.path.exists(input_dir+"/0.PNG")):
+        suffix64 = "png"
+    
+    to_txt = open("{0}.txt".format(now_dir_name),'w')
+    for i in range(0,filecount):
+        print("{0}\\{1}.{2}".format(input_dir,i,suffix64).replace("\\","/"))
+        from_png = open("{0}\\{1}.{2}".format(input_dir,i,suffix64).replace("\\","/"),'rb')
+        base_temp = base64.b64encode(from_png.read())
+        if i == 0 :
+            to_txt.write("[")
+        if i != filecount-1:
+            to_txt.write("'{0}{1}',".format(preimage,str(base_temp)[2:-1]))
+        else:
+            to_txt.write("'{0}{1}']".format(preimage,str(base_temp)[2:-1]))
+        from_png.close()
+    
+    to_txt.close()
+
+
+def doMakeSplitSheet():
+    input_dir = sys.argv[1]+"\\"
+
+    #0 vertical 1 horizontal
+    imageMode = 0 
+    #冗余量
+    ras = 20
+    if os.path.exists(input_dir+"sheet.png"):
+        os.remove(input_dir+"sheet.png")
+    if os.path.exists(input_dir+"sheetfoo.txt"):
+        os.remove(input_dir+"sheetfoo.txt")
+    for root,dirs,files in os.walk(input_dir):
+        imageNames = files
+    imageNames.sort(key= lambda x:int(x[:-4]))
+
+    firstImage = Image.open(input_dir+imageNames[0])
+    w,h = firstImage.size
+    if h > w:
+        imageMode = 1
+    if imageMode == 0:
+        sheetSize = (w,(h+ras*2)*len(imageNames))
+    else:
+        sheetSize = ((w+ras*2)*len(imageNames),h)
+
+    sheet = Image.new("RGBA",sheetSize,(0,0,0,0))
+
+    for index,fileName in enumerate(imageNames):
+        img = Image.open(input_dir+fileName)
+        if imageMode == 0:
+            box = (0,h*index+ras*(index+1)+ras*index,w,h+h*index+ras*(index+1)+ras*index)
+        else:
+            box = (w*index+ras*(index+1)+ras*index,0,w+w*index+ras*(index+1)+ras*index,h)
+        print(box)
+        sheet.paste(img,box)
+
+
+    sheet.save("sheet.png","PNG")
+
+    if imageMode == 1 :
+        css = ".image-sheet{\n width:"+str(w+2*ras)+"px;\n height:"+str(h)+"px;\nposition: absolute;\nbackground-size: "+str(len(imageNames))+"00% 100%;\nbackground-position: 0% 0%;\nbackground-image: url(sheet.png);\n-webkit-animation: imageSheet infinite 1s steps("+str(len(imageNames))+",start);\nanimation: imageSheet infinite 2s steps("+str(len(imageNames))+",start);\n}\n@keyframes imageSheet{\n0% {background-position: "+str(len(imageNames))+"00% 0%}\n100% {background-position: 0% 0%}\n}\n@-webkit-keyframes imageSheet{\n0% {background-position: "+str(len(imageNames))+"00% 0%}\n100% {background-position: 0% 0%}\n}"
+    else:
+        css = ".image-sheet{\n width:"+str(w)+"px;\n height:"+str(h+2*ras)+"px;\nposition: absolute;\nbackground-size: 100% "+str(len(imageNames))+"00%;\nbackground-position: 0% 0%;\nbackground-image: url(sheet.png);\n-webkit-animation: imageSheet infinite 1s steps("+str(len(imageNames))+",start);\nanimation: imageSheet infinite 2s steps("+str(len(imageNames))+",start);\n}\n@keyframes imageSheet{\n0% {background-position: 0% "+str(len(imageNames))+"00%}\n100% {background-position: 0% 0%}\n}\n@-webkit-keyframes imageSheet{\n0% {background-position: 0% "+str(len(imageNames))+"00%}\n100% {background-position: 0% 0%}\n}"
+    
+    fo = open("sheetfoo.txt", "w")
+    fo.write(css)
+    fo.close()
+
+def convertPng():
+    input_dir = "test3"+"\\"
+    new_dir_name = "jpg_image_{0}".format(int(time.time()))
+    output_dir = "./"+new_dir_name
+    os.mkdir(output_dir)
+
+    for root,dirs,files in os.walk(input_dir):
+        imageNames = files
+
+    for image in imageNames:
+        if image.split(".")[-1] in ["png","PNG"]:
+            im = Image.open(input_dir+image)
+            background = Image.new('RGB', im.size, (255, 255, 255))
+            background.paste(im, mask=im.split()[3])
+            saveName = image.split(".")
+            saveName[-1] = "jpg"
+            im.save(output_dir+"\\"+".".join(saveName))
+
+def justForHuige():
+    prejpeg =  "data:image/jpeg;base64,"
+    input_dir = sys.argv[1]
+    now_dir_name = input_dir.split("\\")[-1]
+    new_dir_name = "sprit_base64_{0}".format(int(time.time()))
+    output_dir = "./"+new_dir_name
+    imagecount = 0
+    for root,dirs,files in os.walk(input_dir):    #遍历统计
+        for each in files:
+            imagecount += 1
+
+    data = []
+    for i in range(0,imagecount):
+        from_jpg = open(input_dir+"\\"+str(i)+".jpg",'rb')
+        base_temp = base64.b64encode(from_jpg.read()) 
+        data.append(prejpeg+str(base_temp)[2:-1])
+        from_jpg.close()
+
+    to_txt = open(new_dir_name+".txt",'w')
+    to_txt.write(json.dumps(data,ensure_ascii=False))
+    to_txt.close()
+
+
+
 def main():
     if(len(sys.argv)>1):
-        feature = input("choose function: \n[1]tinify\n[2]ImageToBase64;\n[3]clip image rename\n[4]get all imagePath\n[5]AudioToBase64;\nenter your choice and press enter:")
+        feature = input("choose function: \n[1]tinify\n[2]ImageToBase64;\n[3]clip image rename\n[4]get all imagePath\n[5]AudioToBase64;\n[7]makeSpritSheet;\n[8]converPng;\n[9]sprit base64 (sequence's suffix must be .jpg;file name must be like 0.jpg ~ 222.jpg);\nenter your choice and press enter:")
 
         #tinify
         if feature == "1":
@@ -306,5 +428,13 @@ def main():
             do_get_all_imagePath()
         elif feature == "5":
             do_base64_list_audio()
+        elif feature == "6":
+            doOnceF()
+        elif feature == "7":
+            doMakeSplitSheet()
+        elif feature == "8":
+            convertPng()
+        elif feature == "9":
+            justForHuige()
 if __name__ == '__main__':
     main()
